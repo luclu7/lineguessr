@@ -14,6 +14,7 @@ const useGameLogic = () => {
   const [arret, setArret] = useState<ArretLigneWithIcon | null>(null)
   const [linesToShow, setLinesToShow] = useState<LineWithIcon[]>([])
   const [answer, setAnswer] = useState<LineWithIcon | null>(null)
+  const [answerProgress, setAnswerProgress] = useState(0)
   const isCorrectAnswer = answer?.id === arret?.id
   const showAnswerModal = answer !== null
 
@@ -32,9 +33,16 @@ const useGameLogic = () => {
   const checkAnswer = (line: LineWithIcon) => {
     console.log(`Checking answer: ${line.route_long_name} - ${line.id}`)
     setAnswer(line)
+    setAnswerProgress(0)
+
+    // Trigger transition after render so the bar animates smoothly.
+    requestAnimationFrame(() => {
+      setAnswerProgress(100)
+    })
 
     setTimeout(() => {
       setAnswer(null)
+      setAnswerProgress(0)
       newArret()
     }, 2000)
   }
@@ -44,6 +52,7 @@ const useGameLogic = () => {
     newArret,
     linesToShow,
     answer,
+    answerProgress,
     isCorrectAnswer,
     showAnswerModal,
     checkAnswer,
@@ -55,6 +64,7 @@ function Home() {
     arret,
     newArret,
     linesToShow,
+    answerProgress,
     isCorrectAnswer,
     showAnswerModal,
     checkAnswer,
@@ -100,6 +110,12 @@ function Home() {
                     alt={arret?.route_long_name ?? ''}
                     className="w-30 h-30"
                   />
+                  <div className="h-2 w-full rounded-full bg-white/30 overflow-hidden">
+                    <div
+                      className="h-full bg-gray-200 transition-all ease-linear"
+                      style={{ width: `${answerProgress}%`, transitionDuration: '2000ms' }}
+                    />
+                  </div>
                 </div>
               </div>
             )}

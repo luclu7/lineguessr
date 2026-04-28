@@ -47,12 +47,25 @@ export const getRandomLineIcon = (previousLine?: string): LineWithIcon => {
   return randomLine[Math.floor(Math.random() * randomLine.length)] ?? {route_long_name: '', icon: ''}
 }
 
-export const getThreeOtherRandomLineIcons = (lineToAvoid?: LineWithIcon): LineWithIcon[] => {
+export const getThreeOtherRandomLineIcons = (lineToAvoid?: LineWithIcon | ArretLigneWithIcon): LineWithIcon[] => {
   console.log("Previous line: ", lineToAvoid?.route_long_name, " - ", lineToAvoid?.id)
-  const randomLines = lines.filter(e => e.id !== lineToAvoid?.id)
+  const stopId = lineToAvoid && "stop_id" in lineToAvoid ? lineToAvoid.stop_id : undefined
+  const lineIdsAtSameStop = new Set(
+    stopId
+      ? arretsLignes
+          .filter((arretLigne) => arretLigne.stop_id === stopId)
+          .map((arretLigne) => arretLigne.id)
+      : []
+  )
+  const randomLines = lines.filter((line) => {
+    if (lineToAvoid?.id && line.id === lineToAvoid.id) return false
+    return !lineIdsAtSameStop.has(line.id)
+  })
+
+  console.log("Lines at same stop: ", lineIdsAtSameStop.size)
 
   // create the list of lines that share the same stop
-  
+
  
   
   // randomize the lines
