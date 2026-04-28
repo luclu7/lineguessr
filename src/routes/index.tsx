@@ -39,14 +39,26 @@ const useGameLogic = () => {
     }, 2000)
   }
 
-  
-
-  return { arret, newArret, linesToShow, answer, isCorrectAnswer, showAnswerModal, checkAnswer } as const
+  return {
+    arret,
+    newArret,
+    linesToShow,
+    answer,
+    isCorrectAnswer,
+    showAnswerModal,
+    checkAnswer,
+  } as const
 }
 
 function Home() {
-  const { arret, newArret, linesToShow, isCorrectAnswer, showAnswerModal, checkAnswer } = useGameLogic()
-
+  const {
+    arret,
+    newArret,
+    linesToShow,
+    isCorrectAnswer,
+    showAnswerModal,
+    checkAnswer,
+  } = useGameLogic()
 
   return (
     <div className="p-8">
@@ -55,29 +67,42 @@ function Home() {
       <div className="flex flex-col gap-4 transition-all duration-300 ease-in-out">
         <div className="flex flex-col gap-2 items-center">
           <p className="text-center">
-            <span className="font-bold text-6xl">{arret?.stop_name ?? ''}</span><br/>
+            <span className="font-bold text-6xl">{arret?.stop_name ?? ''}</span>
+            <br />
             sur la ligne ...?
           </p>
-            <div className={`${showAnswerModal ? 'opacity-100' : 'opacity-0'} text-center ${isCorrectAnswer ? 'bg-green-500' : 'bg-red-500'} text-white p-2 rounded-md flex flex-col gap-2 items-center transition-all duration-300 ease-in-out`}>
-              {isCorrectAnswer ? 'Correct!' : 'Incorrect!'}
-              <img src={`/icons/${arret?.icon ?? ''}`} alt={arret?.route_long_name ?? ''} className='w-40 h-40' />
+          <div className="relative my-6">
+            <div className="flex flex-row gap-4">
+              {linesToShow.map((line) => (
+                <button
+                  className={`${showAnswerModal ? 'opacity-50 hover:cursor-not-allowed' : 'opacity-100 hover:cursor-pointer'} transition-all duration-300 ease-in-out`}
+                  onClick={() => {
+                    checkAnswer(line)
+                  }}
+                  disabled={showAnswerModal}
+                >
+                  <img
+                    src={`/icons/${line.icon ?? ''}`}
+                    alt={line.route_long_name ?? ''}
+                    className="w-40 h-40"
+                  />
+                </button>
+              ))}
             </div>
-          <div className="flex flex-row gap-4">
-            {linesToShow.map((line) => (
-              <button
-                className={`${showAnswerModal ? 'opacity-50 hover:cursor-not-allowed' : 'opacity-100 hover:cursor-pointer'} transition-all duration-300 ease-in-out`}
-                onClick={() => {
-                  checkAnswer(line)
-                }}
-                disabled={showAnswerModal}
-              >
-                <img
-                  src={`/icons/${line.icon ?? ''}`}
-                  alt={line.route_long_name ?? ''}
-                  className="w-40 h-40"
-                />
-              </button>
-            ))}
+            {showAnswerModal && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center rounded-md bg-black/50">
+                <div
+                  className={`${isCorrectAnswer ? 'bg-green-500' : 'bg-red-500'} text-center text-white p-4 rounded-md flex flex-col gap-2 items-center shadow-lg`}
+                >
+                  {isCorrectAnswer ? 'Correct!' : 'Incorrect!'}
+                  <img
+                    src={`/icons/${arret?.icon ?? ''}`}
+                    alt={arret?.route_long_name ?? ''}
+                    className="w-30 h-30"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <button

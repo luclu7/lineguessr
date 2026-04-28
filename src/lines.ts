@@ -1,3 +1,4 @@
+import { arrayShuffle } from "array-shuffle"
 import arretLignesJson from "./arrets-lignes-with-icon.json"
 
 export type ArretLigneWithIcon = {
@@ -33,13 +34,12 @@ type PointGeo = {
 
 export const arretsLignes = (arretLignesJson as unknown as ArretLigneWithIcon[])
 
-// remove duplicates
 export const lines = arretsLignes.map(e => {return {
   route_long_name: e.route_long_name,
   icon: e.icon,
   id: e.id,
 }}).filter((e, index, self) =>
-  index === self.findIndex((t) => t.route_long_name === e.route_long_name)
+  index === self.findIndex((t) => t.id === e.id)
 )
 
 export const getRandomLineIcon = (previousLine?: string): LineWithIcon => {
@@ -47,12 +47,16 @@ export const getRandomLineIcon = (previousLine?: string): LineWithIcon => {
   return randomLine[Math.floor(Math.random() * randomLine.length)] ?? {route_long_name: '', icon: ''}
 }
 
-export const getThreeOtherRandomLineIcons = (previousLine?: LineWithIcon): LineWithIcon[] => {
-  console.log("Previous line: ", previousLine?.route_long_name, " - ", previousLine?.id)
-  const randomLines = lines.filter(e => e.id !== previousLine?.id)
+export const getThreeOtherRandomLineIcons = (lineToAvoid?: LineWithIcon): LineWithIcon[] => {
+  console.log("Previous line: ", lineToAvoid?.route_long_name, " - ", lineToAvoid?.id)
+  const randomLines = lines.filter(e => e.id !== lineToAvoid?.id)
+
+  // create the list of lines that share the same stop
+  
+ 
   
   // randomize the lines
-  randomLines.sort(() => Math.random() - 0.5)
+  arrayShuffle(randomLines);
 
  console.log("Random lines: ", randomLines.slice(0, 3).map(e => e.route_long_name))
   
