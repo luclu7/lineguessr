@@ -1,0 +1,93 @@
+import {
+  getRandomArret,
+  getThreeOtherRandomLineIcons,
+  type ArretLigneWithIcon,
+  type LineWithIcon,
+} from '#/lines'
+import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { arrayToShuffled } from 'array-shuffle'
+
+export const Route = createFileRoute('/')({ component: Home })
+
+const useGameLogic = () => {
+  const [arret, setArret] = useState<ArretLigneWithIcon | null>(null)
+  const [linesToShow, setLinesToShow] = useState<LineWithIcon[]>([])
+  const [answer, setAnswer] = useState<LineWithIcon | null>(null)
+  const isCorrectAnswer = answer?.id === arret?.id
+  const showAnswerModal = answer !== null
+
+  useEffect(() => {
+    newArret()
+  }, [])
+
+  const newArret = () => {
+    const newStop = getRandomArret(arret?.id ?? '')
+    setArret(newStop)
+    const otherLines = getThreeOtherRandomLineIcons(newStop)
+    const everyLinesToShow = arrayToShuffled([...otherLines, newStop])
+    setLinesToShow(everyLinesToShow)
+  }
+
+  const checkAnswer = (line: LineWithIcon) => {
+    console.log(`Checking answer: ${line.route_long_name} - ${line.id}`)
+    setAnswer(line)
+
+    setTimeout(() => {
+      setAnswer(null)
+      newArret()
+    }, 2000)
+  }
+
+  
+
+  return { arret, newArret, linesToShow, answer, isCorrectAnswer, showAnswerModal, checkAnswer } as const
+}
+
+function Home() {
+  const { arret, newArret, linesToShow, isCorrectAnswer, showAnswerModal, checkAnswer } = useGameLogic()
+
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold">Lineguessr</h1>
+      <p className="text-sm text-gray-500">jsp je m'ennuie en cours</p>
+      <div className="flex flex-col gap-4 transition-all duration-300 ease-in-out">
+        <div className="flex flex-col gap-2 items-center">
+          <p className="text-center">
+            <span className="font-bold text-6xl">{arret?.stop_name ?? ''}</span><br/>
+            sur la ligne ...?
+          </p>
+            <div className={`${showAnswerModal ? 'opacity-100' : 'opacity-0'} text-center ${isCorrectAnswer ? 'bg-green-500' : 'bg-red-500'} text-white p-2 rounded-md flex flex-col gap-2 items-center transition-all duration-300 ease-in-out`}>
+              {isCorrectAnswer ? 'Correct!' : 'Incorrect!'}
+              <img src={`/icons/${arret?.icon ?? ''}`} alt={arret?.route_long_name ?? ''} className='w-40 h-40' />
+            </div>
+          <div className="flex flex-row gap-4">
+            {linesToShow.map((line) => (
+              <button
+                className={`${showAnswerModal ? 'opacity-50 hover:cursor-not-allowed' : 'opacity-100 hover:cursor-pointer'} transition-all duration-300 ease-in-out`}
+                onClick={() => {
+                  checkAnswer(line)
+                }}
+                disabled={showAnswerModal}
+              >
+                <img
+                  src={`/icons/${line.icon ?? ''}`}
+                  alt={line.route_long_name ?? ''}
+                  className="w-40 h-40"
+                />
+              </button>
+            ))}
+          </div>
+
+          <button
+            className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 hover:cursor-pointer"
+            onClick={newArret}
+          >
+            New random arret
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
