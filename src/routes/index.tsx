@@ -10,6 +10,9 @@ function Home() {
       <Link to="/game" className="bg-blue-500 text-white p-2 text-2xl font-bold rounded-md hover:bg-blue-600 hover:cursor-pointer mt-2">
         Lancer le jeu
       </Link>
+      <Link to="/timer-test" className="text-blue-600 underline">
+        Tester le timer
+      </Link>
     </div>
   )
 }

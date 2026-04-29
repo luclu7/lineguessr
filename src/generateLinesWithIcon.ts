@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs"
+import { readFileSync, writeFileSync } from "node:fs"
 import type { ArretLigne } from "./lines"
 
 const arretLignesJson = readFileSync('arrets-lignes.json', 'utf8')
