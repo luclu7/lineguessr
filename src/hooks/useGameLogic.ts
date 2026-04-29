@@ -47,7 +47,14 @@ export const useGameLogic = () => {
   )
   const showAnswerModal = answer !== null
 
-  const isRoundActive = useRef(false)
+  type GamePhase = 'transition' | 'playing' | 'answering' | 'gameOver'
+  const [phase, setPhase] = useState<GamePhase>('transition')
+  const phaseRef = useRef<GamePhase>('transition')
+  const transitionTo = useCallback((next: GamePhase) => {
+    phaseRef.current = next
+    setPhase(next)
+  }, [])
+
   const roundStartedAtRef = useRef<number>(Date.now())
   const isGameOverRef = useRef(false)
 
@@ -59,6 +66,7 @@ export const useGameLogic = () => {
     if (round > NUMBER_OF_ROUNDS) {
       setIsGameOver(true)
       stop()
+      transitionTo('gameOver')
     }
   }, [round])
 
@@ -80,58 +88,59 @@ export const useGameLogic = () => {
 
     generateRound()
     roundStartedAtRef.current = Date.now()
-    isRoundActive.current = true
+    transitionTo('playing')
 
     reset()
     start()
     setRound(round + 1)
-  }, [generateRound, reset, start, round, setRound])
+  }, [generateRound, reset, start, round, setRound, transitionTo])
 
   const endRound = useCallback(() => {
-    isRoundActive.current = false
     stop()
   }, [stop])
 
+  const newArret = useCallback(() => {
+    if (isGameOverRef.current) return
+    transitionTo('transition')
+    clearAnswerState()
+    endRound()
+    startRound()
+    setRound(round + 1)
+  }, [clearAnswerState, endRound, startRound, round, transitionTo])
+
   const handleTimeout = useCallback(() => {
-    if (!isRoundActive.current || isGameOverRef.current) return
+    if (phaseRef.current !== 'playing' || isGameOverRef.current) return
     newArret()
-  }, [stop])
+  }, [newArret])
 
   // Quand le countdown atteint 0, on considère que le joueur n'a pas répondu donc on passe à la question suivante
   useEffect(() => {
     if (isGameOver) return
-    if (!isRoundActive.current) return
+    if (phase !== 'playing') return
     if (timeLeftMs > 0) return
     handleTimeout()
-  }, [handleTimeout, isGameOver, timeLeftMs])
+  }, [handleTimeout, isGameOver, phase, timeLeftMs])
 
   useEffect(() => {
     startRound()
   }, [])
 
-  const newArret = useCallback(() => {
-    if (isGameOverRef.current) return
-    clearAnswerState()
-    endRound()
-    startRound()
-    setRound(round + 1)
-  }, [clearAnswerState, endRound, startRound])
-
   const resetGame = useCallback(() => {
+    transitionTo('transition')
     setRound(1)
     setScore(0)
     setIsGameOver(false)
     clearAnswerState()
     endRound()
     startRound()
-  }, [clearAnswerState, endRound, startRound])
+  }, [clearAnswerState, endRound, startRound, transitionTo])
 
   const [newPoints, setNewPoints] = useState(0)
 
   const checkAnswer = useCallback(
     (line: LineWithIcon) => {
       if (isGameOverRef.current) return
-      if (!isRoundActive.current) return
+      if (phaseRef.current !== 'playing') return
 
       const elapsed = Date.now() - roundStartedAtRef.current
       const points = computePointsFromElapsedMs(elapsed)
@@ -140,6 +149,7 @@ export const useGameLogic = () => {
 
       // Stopper immédiatement le round: le joueur a "choisi", on fige le scoring.
       endRound()
+      transitionTo('answering')
 
       setAnswer(line)
       setAnswerProgress(0)
@@ -156,10 +166,11 @@ export const useGameLogic = () => {
       setTimeout(() => {
         if (isGameOverRef.current) return
         clearAnswerState()
+        transitionTo('transition')
         startRound()
       }, NEXT_ROUND_DELAY_AFTER_ANSWER_MS)
     },
-    [arret?.id, clearAnswerState, endRound, startRound],
+    [arret?.id, clearAnswerState, endRound, startRound, transitionTo],
   )
 
   return {

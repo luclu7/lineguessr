@@ -4,7 +4,6 @@ import { Link } from '@tanstack/react-router'
 export const Game = () => {
   const {
     arret,
-    newArret,
     linesToShow,
     score,
     timeLeftSeconds,
@@ -120,8 +119,8 @@ export const Game = () => {
       {isGameOver && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-md bg-black/50">
           <div className="bg-white p-6 rounded-md shadow-lg text-center flex flex-col gap-3 items-center">
-            <p className="text-xl font-bold">Temps écoulé</p>
-            <p className="text-sm text-gray-600">Ton score final : {score}</p>
+            <p className="text-3xl font-bold">Fin de la partie</p>
+            <p className="text-2xl text-gray-600">Score final : <span className="font-bold text-gray-900">{score}</span></p>
             <button
               className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
               onClick={resetGame}
